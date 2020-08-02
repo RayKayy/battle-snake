@@ -1,0 +1,34 @@
+{
+  "name": "battle-snake",
+  "version": "1.0.0",
+  "description": "basic battlesnake server in typescript",
+  "main": "./dist",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1",
+    "dev": "nodemon --delay 80ms ./src/index.ts",
+    "build": "tsc"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/RayKayy/battle-snake.git"
+  },
+  "author": "RayKayy",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/RayKayy/battle-snake/issues"
+  },
+  "homepage": "https://github.com/RayKayy/battle-snake#readme",
+  "dependencies": {
+    "fastify": "^3.1.1"
+  },
+  "devDependencies": {
+    "@types/node": "^14.0.27",
+    "@typescript-eslint/eslint-plugin": "^3.7.1",
+    "@typescript-eslint/parser": "^3.7.1",
+    "eslint": "^7.6.0",
+    "eslint-config-prettier": "^6.11.0",
+    "nodemon": "^2.0.4",
+    "ts-node": "^8.10.2",
+    "typescript": "^3.9.7"
+  }
+}
