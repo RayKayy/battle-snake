@@ -3,9 +3,28 @@ import fastify from 'fastify';
 
 const app = fastify({ logger: true });
 
-app.get('/', (req, reply) => {
-  reply.send({ hello: 'world' });
-});
+app.get(
+  '/',
+  {
+    schema: {
+      response: {
+        200: {
+          type: 'object',
+          properties: {
+            apiversion: { type: 'string' },
+            author: { type: 'string' },
+            color: { type: 'string' },
+            head: { type: 'string' },
+            tail: { type: 'string' },
+          },
+        },
+      },
+    },
+  },
+  (request, reply) => {
+    reply.send({ apiversion: '1', author: 'RayKayy' });
+  },
+);
 
 (async () => {
   try {
