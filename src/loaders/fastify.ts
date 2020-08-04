@@ -1,8 +1,8 @@
 import { FastifyInstance } from 'fastify';
+import routes from '../routes';
 
 export default (fastify: FastifyInstance) => {
-  fastify.post('/start', (request, reply) => {
-    console.log(request);
-    reply.send();
-  });
+  // Load Routes
+  routes.forEach((routeOptions) => fastify.route(routeOptions));
+  return fastify;
 };

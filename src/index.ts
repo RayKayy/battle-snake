@@ -1,7 +1,8 @@
 console.log('Hello, World!');
 import fastify from 'fastify';
+import routeLoader from './loaders/fastify';
 
-const app = fastify({ logger: true });
+let app = fastify({ logger: true });
 
 app.get(
   '/',
@@ -25,6 +26,8 @@ app.get(
     reply.send({ apiversion: '1', author: 'RayKayy' });
   },
 );
+
+app = routeLoader(app);
 
 (async () => {
   try {

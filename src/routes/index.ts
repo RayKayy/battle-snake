@@ -1,4 +1,5 @@
 import { RouteOptions } from 'fastify';
+import BaseSolver, { Coords } from '../snek/BaseSolver';
 
 const COORDS_SCHEMA = {
   type: 'object',
@@ -48,6 +49,8 @@ const BS_V1_REQ_BODY_SCHEMA = {
   you: BATTLESNAKE_SCHEMA,
 };
 
+const STATE: Record<string, BaseSolver> = {};
+
 const routes: RouteOptions[] = [
   {
     url: '/start',
@@ -56,7 +59,19 @@ const routes: RouteOptions[] = [
       body: BS_V1_REQ_BODY_SCHEMA,
     },
     handler: (request, reply) => {
-      console.log(request.body);
+      const {
+        game: { id, timeout },
+        board: { width, height, hazards, snakes, food },
+      } = request.body as any;
+      STATE[id] = new BaseSolver(width, height);
+      STATE[id].updateArena(
+        food,
+        snakes.reduce((acc: Coords[], snake: any) => {
+          acc.push(...snake.body);
+          return acc;
+        }, []),
+        hazards,
+      );
       reply.send();
     },
   },
@@ -67,7 +82,20 @@ const routes: RouteOptions[] = [
       body: BS_V1_REQ_BODY_SCHEMA,
     },
     handler: (request, reply) => {
-      console.log(request.body);
+      const {
+        game: { id, timeout },
+        board: { hazards, snakes, food },
+      } = request.body as any;
+      STATE[id].updateArena(
+        food,
+        snakes.reduce((acc: Coords[], snake: any) => {
+          acc.push(...snake.body);
+          return acc;
+        }, []),
+        hazards,
+      );
+      console.log(STATE[id].arena);
+      delete STATE[id];
       reply.send();
     },
   },
@@ -85,8 +113,22 @@ const routes: RouteOptions[] = [
       },
     },
     handler: (request, reply) => {
-      console.log(request.body);
-      reply.send();
+      const {
+        game: { id, timeout },
+        board: { hazards, snakes, food },
+        you: { head },
+      } = request.body as any;
+      STATE[id].updateArena(
+        food,
+        snakes.reduce((acc: Coords[], snake: any) => {
+          acc.push(...snake.body);
+          return acc;
+        }, []),
+        hazards,
+      );
+      const move = STATE[id].getMove(head);
+      console.log(STATE[id].arena);
+      reply.send({ move, shout: `Base Avoidance Move: ${move}` });
     },
   },
 ];
