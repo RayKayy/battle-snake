@@ -5,7 +5,7 @@ import routeLoader from './loaders/fastify';
 let app = fastify({ logger: true });
 
 app.get(
-  '/',
+  '/:solver',
   {
     schema: {
       response: {

@@ -1,4 +1,5 @@
 export const TERRAIN_MAP = {
+  EMPTY: 0,
   FOOD: 1,
   SNAKE: 2,
   HAZARD: 3,
@@ -9,48 +10,52 @@ export type Coords = {
   y: number;
 };
 
-type Arena = number[][];
+export type Grid = number[][];
 
-type Directions = 'up' | 'down' | 'left' | 'right';
-
-// Simple Base Solver
-class BaseSolver {
-  private _baseArena: Arena;
-
-  public arena: Arena;
-
+export class Arena {
   public width: number;
 
   public height: number;
 
-  public constructor(width: number, height: number) {
-    const row = new Array(width).fill(0);
+  public grid: Grid;
+
+  private _baseGrid: Grid;
+
+  constructor(width: number, height: number) {
     this.width = width;
     this.height = height;
-    this._baseArena = new Array(height).fill([...row]);
-    this.arena = JSON.parse(JSON.stringify(this._baseArena));
+    const row = new Array(width).fill(0);
+    this._baseGrid = new Array(height).fill([...row]);
+    this.grid = JSON.parse(JSON.stringify(this._baseGrid));
   }
 
   private resetArena() {
-    this.arena = JSON.parse(JSON.stringify(this._baseArena));
+    this.grid = JSON.parse(JSON.stringify(this._baseGrid));
   }
 
-  public updateArena(
-    foods: Coords[],
-    snakes: Coords[],
-    hazards: Coords[],
-  ): Arena {
+  public update(foods: Coords[], snakes: Coords[], hazards: Coords[]): Grid {
     this.resetArena();
     foods.forEach(({ x, y }) => {
-      this.arena[y][x] = TERRAIN_MAP.FOOD;
+      this.grid[y][x] = TERRAIN_MAP.FOOD;
     });
     snakes.forEach(({ x, y }) => {
-      this.arena[y][x] = TERRAIN_MAP.SNAKE;
+      this.grid[y][x] = TERRAIN_MAP.SNAKE;
     });
     hazards.forEach(({ x, y }) => {
-      this.arena[y][x] = TERRAIN_MAP.HAZARD;
+      this.grid[y][x] = TERRAIN_MAP.HAZARD;
     });
-    return this.arena;
+    return this.grid;
+  }
+}
+
+export type Directions = 'up' | 'down' | 'left' | 'right';
+
+// Simple Base Solver
+class BaseSolver {
+  public arena: Arena;
+
+  public constructor(arena: Arena) {
+    this.arena = arena;
   }
 
   // To Be Overriden by child classes
@@ -58,15 +63,21 @@ class BaseSolver {
   public getMove(head: Coords): Directions | null {
     const { x, y } = head;
     const moves = {
-      up: { x, y: y + 1 },
-      down: { x, y: y - 1 },
+      up: { x, y: y - 1 },
+      down: { x, y: y + 1 },
       left: { x: x - 1, y },
       right: { x: x + 1, y },
     };
     for (const entry of Object.entries(moves).sort(() => Math.random() - 0.5)) {
       const [direction, { x: newX, y: newY }] = entry;
-      if (newX >= 0 && newX < this.width && newY >= 0 && newY < this.height) {
-        const newLoc = this.arena[newY][newX];
+      if (
+        newX >= 0 &&
+        newX < this.arena.width &&
+        newY >= 0 &&
+        newY < this.arena.height
+      ) {
+        const newLoc = this.arena.grid[newY][newX];
+        console.log(newLoc);
         if (newLoc !== TERRAIN_MAP.SNAKE && newLoc !== TERRAIN_MAP.HAZARD) {
           return direction as Directions;
         }
@@ -77,17 +88,3 @@ class BaseSolver {
 }
 
 export default BaseSolver;
-
-const x = [
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-  [0, 0, 0, 0, 0, 2, 0, 0, 0, 0, 0],
-];

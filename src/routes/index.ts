@@ -1,5 +1,6 @@
 import { RouteOptions } from 'fastify';
-import BaseSolver, { Coords } from '../snek/BaseSolver';
+import BaseSolver, { Coords, Arena } from '../snek/BaseSolver';
+import BfsSolver from '../snek/BfsSolver';
 
 const COORDS_SCHEMA = {
   type: 'object',
@@ -49,22 +50,37 @@ const BS_V1_REQ_BODY_SCHEMA = {
   you: BATTLESNAKE_SCHEMA,
 };
 
-const STATE: Record<string, BaseSolver> = {};
+const SOLVER_CLASS_MAP = {
+  bfs: BfsSolver,
+  dumb: BaseSolver,
+};
+
+const STATE: Record<string, BaseSolver | BfsSolver> = {};
 
 const routes: RouteOptions[] = [
   {
-    url: '/start',
+    url: '/:solver/start',
     method: 'POST',
     schema: {
       body: BS_V1_REQ_BODY_SCHEMA,
     },
-    handler: (request, reply) => {
+    handler: (request: any, reply) => {
       const {
         game: { id, timeout },
         board: { width, height, hazards, snakes, food },
       } = request.body as any;
-      STATE[id] = new BaseSolver(width, height);
-      STATE[id].updateArena(
+
+      console.log(
+        SOLVER_CLASS_MAP[
+          request.params.solver as keyof typeof SOLVER_CLASS_MAP
+        ],
+      );
+
+      STATE[id] = new SOLVER_CLASS_MAP[
+        request.params.solver as keyof typeof SOLVER_CLASS_MAP
+      ](new Arena(width, height));
+      // STATE[id] = new BfsSolver(new Arena(width, height));
+      STATE[id].arena.update(
         food,
         snakes.reduce((acc: Coords[], snake: any) => {
           acc.push(...snake.body);
@@ -72,11 +88,12 @@ const routes: RouteOptions[] = [
         }, []),
         hazards,
       );
+      console.log(STATE[id]);
       reply.send();
     },
   },
   {
-    url: '/end',
+    url: '/:solver/end',
     method: 'POST',
     schema: {
       body: BS_V1_REQ_BODY_SCHEMA,
@@ -86,7 +103,7 @@ const routes: RouteOptions[] = [
         game: { id, timeout },
         board: { hazards, snakes, food },
       } = request.body as any;
-      STATE[id].updateArena(
+      STATE[id].arena.update(
         food,
         snakes.reduce((acc: Coords[], snake: any) => {
           acc.push(...snake.body);
@@ -94,13 +111,12 @@ const routes: RouteOptions[] = [
         }, []),
         hazards,
       );
-      console.log(STATE[id].arena);
       delete STATE[id];
       reply.send();
     },
   },
   {
-    url: '/move',
+    url: '/:solver/move',
     method: 'POST',
     schema: {
       body: BS_V1_REQ_BODY_SCHEMA,
@@ -118,7 +134,7 @@ const routes: RouteOptions[] = [
         board: { hazards, snakes, food },
         you: { head },
       } = request.body as any;
-      STATE[id].updateArena(
+      STATE[id].arena.update(
         food,
         snakes.reduce((acc: Coords[], snake: any) => {
           acc.push(...snake.body);
@@ -127,7 +143,7 @@ const routes: RouteOptions[] = [
         hazards,
       );
       const move = STATE[id].getMove(head);
-      console.log(STATE[id].arena);
+      console.log(move);
       reply.send({ move, shout: `Base Avoidance Move: ${move}` });
     },
   },
